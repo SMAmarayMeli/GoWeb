@@ -1,33 +1,36 @@
 package main
 
 import (
+	"GoWeb/globals"
+	"GoWeb/handlers"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"io/ioutil"
 )
 
-type producto struct {
-	Id           int
-	Name         string
-	Quantity     float64
-	Code_value   string
-	Is_published bool
-	Expiration   string
-	Price        float64
-}
-
-var Productos = make([]producto, 0)
-
-func main() {
+func readJson() {
 	data, err := ioutil.ReadFile("products.json")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	err = json.Unmarshal(data, &Productos)
+	err = json.Unmarshal(data, &globals.Productos)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+}
 
+func main() {
+	readJson()
+
+	router := gin.Default()
+
+	router.GET("/ping", handlers.Ping)
+	router.GET("/products", handlers.Products)
+	router.GET("/products/:id", handlers.ProductId)
+	router.GET("/products/search", handlers.ProductsPriceGt)
+
+	router.Run()
 }
