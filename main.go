@@ -24,6 +24,7 @@ func readJson() {
 
 func main() {
 	readJson()
+	globals.LastId = len(globals.Productos)
 
 	router := gin.Default()
 
@@ -31,6 +32,7 @@ func main() {
 	router.GET("/products", handlers.Products)
 	router.GET("/products/:id", handlers.ProductId)
 	router.GET("/products/search", handlers.ProductsPriceGt)
+	router.POST("/products", handlers.ProductAdd)
 
 	router.Run()
 }

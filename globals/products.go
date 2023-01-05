@@ -1,13 +1,14 @@
 package globals
 
 type Producto struct {
-	Id          int
-	Name        string
-	Quantity    float64
-	CodeValue   string
-	IsPublished bool
-	Expiration  string
-	Price       float64
+	Id          int     `json:"id,-"`
+	Name        string  `json:"name"`
+	Quantity    float64 `json:"quantity"`
+	CodeValue   string  `json:"code_value"`
+	IsPublished bool    `json:"is_published" `
+	Expiration  string  `json:"expiration"`
+	Price       float64 `json:"price"`
 }
 
 var Productos = make([]Producto, 0)
+var LastId int
