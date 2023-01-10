@@ -1,4 +1,4 @@
-package globals
+package domain
 
 type Producto struct {
 	Id          int     `json:"id,-"`

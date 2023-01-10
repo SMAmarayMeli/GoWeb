@@ -1,30 +1,17 @@
 package main
 
 import (
-	"GoWeb/globals"
 	"GoWeb/handlers"
-	"encoding/json"
-	"fmt"
+	"GoWeb/internal/domain"
+	"GoWeb/internal/product"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
 )
 
-func readJson() {
-	data, err := ioutil.ReadFile("products.json")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	err = json.Unmarshal(data, &globals.Productos)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-}
+
 
 func main() {
-	readJson()
-	globals.LastId = len(globals.Productos)
+	product.ReadJson()
+	domain.LastId = len(domain.Productos)
 
 	router := gin.Default()
 
