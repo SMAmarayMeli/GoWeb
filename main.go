@@ -28,11 +28,13 @@ func main() {
 
 	router := gin.Default()
 
+	prod := router.Group("/products")
+
 	router.GET("/ping", handlers.Ping)
-	router.GET("/products", handlers.Products)
-	router.GET("/products/:id", handlers.ProductId)
-	router.GET("/products/search", handlers.ProductsPriceGt)
-	router.POST("/products", handlers.ProductAdd)
+	prod.GET("/", handlers.Products)
+	prod.GET("/:id", handlers.ProductId)
+	prod.GET("/search", handlers.ProductsPriceGt)
+	prod.POST("/", handlers.ProductAdd)
 
 	router.Run()
 }
