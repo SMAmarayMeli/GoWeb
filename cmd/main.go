@@ -11,12 +11,12 @@ import (
 )
 
 func readJson(dbP *[]domain.Producto) {
-	data, err := ioutil.ReadFile("products.json")
+	data, err := ioutil.ReadFile("../GoWeb/internal/product/products.json")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	err = json.Unmarshal(data, &dbP)
+	err = json.Unmarshal(data, dbP)
 	if err != nil {
 		fmt.Println(err)
 		return
