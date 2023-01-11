@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"io/ioutil"
 	"log"
 )
@@ -24,6 +25,11 @@ func readJson(dbP *[]domain.Producto) {
 }
 
 func main() {
+	err := godotenv.Load("go.env")
+	if err != nil {
+		panic("env not loadable")
+	}
+
 	dbP := []domain.Producto{}
 	readJson(&dbP)
 

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -114,6 +115,12 @@ func verificarVacios(price float64, name string, expiration string, codeValue st
 func (p *Producto) ProductAdd() gin.HandlerFunc{
 	return func(c *gin.Context) {
 
+		token := c.GetHeader("token")
+		if token != os.Getenv("SECRET"){
+			c.JSON(http.StatusUnauthorized, "Token invalido")
+			return
+		}
+
 		var r requestProduct
 
 		if err := c.ShouldBindJSON(&r); err != nil {
@@ -152,6 +159,12 @@ func (p *Producto) ProductAdd() gin.HandlerFunc{
 
 func (p *Producto) ProductReplace() gin.HandlerFunc {
 	return func(c *gin.Context) {
+
+		token := c.GetHeader("token")
+		if token != os.Getenv("SECRET"){
+			c.JSON(http.StatusUnauthorized, "Token invalido")
+			return
+		}
 
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -208,6 +221,12 @@ func (p *Producto) ProductReplace() gin.HandlerFunc {
 
 func (p *Producto) DeleteProduct() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		token := c.GetHeader("token")
+		if token != os.Getenv("SECRET"){
+			c.JSON(http.StatusUnauthorized, "Token invalido")
+			return
+		}
+
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -231,6 +250,12 @@ func (p *Producto) DeleteProduct() gin.HandlerFunc {
 
 func (p *Producto) ProductPatch() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		token := c.GetHeader("token")
+		if token != os.Getenv("SECRET"){
+			c.JSON(http.StatusUnauthorized, "Token invalido")
+			return
+		}
+
 		var r requestProduct
 
 		id, err := strconv.Atoi(c.Param("id"))
