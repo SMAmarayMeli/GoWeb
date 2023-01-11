@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"GoWeb/internal/domain"
 	"GoWeb/internal/product"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -8,6 +9,15 @@ import (
 	"strconv"
 	"time"
 )
+
+type requestProduct struct {
+	Name        string  `json:"name"`
+	Quantity    float64 `json:"quantity"`
+	CodeValue   string  `json:"code_value"`
+	IsPublished bool    `json:"is_published" `
+	Expiration  string  `json:"expiration"`
+	Price       float64 `json:"price"`
+}
 
 type Producto struct {
 	sv product.Service
@@ -37,22 +47,22 @@ func (p *Producto) Products() gin.HandlerFunc {
 func (p *Producto) ProductId() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		code, err := strconv.Atoi(c.Param("id"))
+		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"message": "fail to parse code",
+				"message": "fail to parse id",
 				"error": err,
 			})
 			return
 		}
 
-		searched, err := p.sv.GetById(code)
+		searched, err := p.sv.GetById(id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, err)
 			return
 		}
 
-		c.JSON(http.StatusFound, searched)
+		c.JSON(http.StatusFound, *searched)
 	}
 }
 
@@ -104,16 +114,7 @@ func verificarVacios(price float64, name string, expiration string, codeValue st
 func (p *Producto) ProductAdd() gin.HandlerFunc{
 	return func(c *gin.Context) {
 
-		type request struct {
-			Name        string  `json:"name"`
-			Quantity    float64 `json:"quantity"`
-			CodeValue   string  `json:"code_value"`
-			IsPublished bool    `json:"is_published" `
-			Expiration  string  `json:"expiration"`
-			Price       float64 `json:"price"`
-		}
-
-		var r request
+		var r requestProduct
 
 		if err := c.ShouldBindJSON(&r); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -147,4 +148,46 @@ func (p *Producto) ProductAdd() gin.HandlerFunc{
 		})
 	}
 
+}
+
+func (p *Producto) ProductReplace() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "fail to parse code",
+				"error": err,
+			})
+			return
+		}
+
+		var replaceRequest requestProduct
+		if err := c.ShouldBindJSON(&replaceRequest); err != nil {
+			c.JSON(http.StatusBadRequest, nil)
+			return
+		}
+
+		var replaceProduct = domain.Producto{
+			Id: id,
+			Name: replaceRequest.Name,
+			Quantity: replaceRequest.Quantity,
+			CodeValue: replaceRequest.CodeValue,
+			IsPublished: replaceRequest.IsPublished,
+			Expiration: replaceRequest.Expiration,
+			Price: replaceRequest.Price,
+		}
+
+		err = p.sv.Update(id, replaceProduct)
+		if err != nil {
+			switch err {
+			case product.ErrNotFound:
+				c.JSON(http.StatusNotFound, "No se encontro")
+			default:
+				c.JSON(http.StatusInternalServerError, nil)
+			}
+		}
+
+		c.JSON(http.StatusOK, replaceProduct)
+	}
 }

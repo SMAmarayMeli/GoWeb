@@ -32,4 +32,7 @@ func (r *Router) SetWebsite() {
 	prod.GET("/:id", h.ProductId())
 	prod.GET("/search", h.ProductsPriceGt())
 	prod.POST("/", h.ProductAdd())
+	prod.PUT("/:id", h.ProductReplace())
+	//prod.PATCH("/:id", h.ProductPatch())
+	//prod.DELETE("/:id", h.DeleteProduct())
 }
