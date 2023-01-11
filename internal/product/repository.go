@@ -13,8 +13,8 @@ var (
 type Repository interface {
 	// read
 	Get() ([]domain.Producto, error)
-	GetByCode(id int) (domain.Producto, error)
-	ExistCodeValue(url string) bool
+	GetById(id int) (domain.Producto, error)
+	ExistId(url int) bool
 	GetGreaterThanPrice(price float64) ([]domain.Producto, error)
 	// write
 	Create(domain.Producto) (int, error)
@@ -33,7 +33,7 @@ func NewRepository(db *[]domain.Producto, lastID int) Repository {
 func (r *repository) Get() ([]domain.Producto, error) {
 	return *r.db, nil
 }
-func (r *repository) GetByCode(id int) (domain.Producto, error) {
+func (r *repository) GetById(id int) (domain.Producto, error) {
 	for _, p := range *r.db {
 		if p.Id == id {
 			return p, nil
@@ -42,9 +42,9 @@ func (r *repository) GetByCode(id int) (domain.Producto, error) {
 
 	return domain.Producto{}, fmt.Errorf("%w. %s", ErrNotFound, "product does not exist")
 }
-func (r *repository) ExistCodeValue(code string) bool {
+func (r *repository) ExistId(id int) bool {
 	for _, p := range *r.db {
-		if p.CodeValue == code {
+		if p.Id == id {
 			return true
 		}
 	}

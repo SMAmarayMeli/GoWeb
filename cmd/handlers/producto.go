@@ -37,14 +37,16 @@ func (p *Producto) Products() gin.HandlerFunc {
 func (p *Producto) ProductId() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		code, err := strconv.Atoi(c.Param("codeValue"))
+		code, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "fail to parse code",
+				"error": err,
 			})
 			return
 		}
-		searched, err := p.sv.GetByCode(code)
+
+		searched, err := p.sv.GetById(code)
 		if err != nil {
 			c.JSON(http.StatusNotFound, err)
 			return
@@ -115,20 +117,20 @@ func (p *Producto) ProductAdd() gin.HandlerFunc{
 
 		if err := c.ShouldBindJSON(&r); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err,
+				"error json": err,
 			})
 		}
 
 		if errFecha := verificarFecha(r.Expiration); errFecha != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": errFecha,
+				"error fecha": errFecha,
 			})
 			return
 		}
 
 		if errVacios := verificarVacios(r.Price, r.Name, r.Expiration, r.CodeValue, r.Quantity); errVacios != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": errVacios.Error(),
+				"error vacios": errVacios.Error(),
 			})
 			return
 		}

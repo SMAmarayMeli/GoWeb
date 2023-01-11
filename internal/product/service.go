@@ -11,7 +11,7 @@ var (
 
 type Service interface {
 	Get() ([]domain.Producto, error)
-	GetByCode(id int) (domain.Producto, error)
+	GetById(id int) (domain.Producto, error)
 	GetGreaterThanPrice(price float64) ([]domain.Producto, error)
 	Create(name, codeValue, expiration string, quantity, price float64, isPublished bool) (domain.Producto, error)
 }
@@ -28,8 +28,8 @@ func (sv *service) Get() ([]domain.Producto, error) {
 	return sv.rp.Get()
 }
 
-func (sv *service) GetByCode(id int) (domain.Producto, error) {
-	return sv.rp.GetByCode(id)
+func (sv *service) GetById(id int) (domain.Producto, error) {
+	return sv.rp.GetById(id)
 }
 
 func (sv *service) GetGreaterThanPrice(price float64) ([]domain.Producto, error) {
@@ -37,9 +37,6 @@ func (sv *service) GetGreaterThanPrice(price float64) ([]domain.Producto, error)
 }
 
 func (sv *service) Create(name, codeValue, expiration string, quantity, price float64, isPublished bool) (domain.Producto, error) {
-	if sv.rp.ExistCodeValue(codeValue) {
-		return domain.Producto{}, ErrAlreadyExist
-	}
 
 	pr := domain.Producto{
 		Name: name,
