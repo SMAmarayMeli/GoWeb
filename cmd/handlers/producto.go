@@ -3,6 +3,7 @@ package handlers
 import (
 	"GoWeb/internal/domain"
 	"GoWeb/internal/product"
+	"GoWeb/pkg/response"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -30,7 +31,7 @@ func NewProducto(sv product.Service) *Producto {
 
 func (p *Producto) Ping() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.String(200, "pong")
+		c.JSON(200, response.Response{Data: "pong"})
 	}
 }
 
@@ -41,7 +42,7 @@ func (p *Producto) Products() gin.HandlerFunc {
 			c.JSON(500, nil)
 			return
 		}
-		c.JSON(http.StatusOK, productos)
+		c.JSON(http.StatusOK, response.Response{Data: productos})
 	}
 }
 
@@ -63,7 +64,7 @@ func (p *Producto) ProductId() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusFound, searched)
+		c.JSON(http.StatusFound, response.Response{Data: searched})
 	}
 }
 
@@ -83,7 +84,7 @@ func (p *Producto) ProductsPriceGt() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, productosQueried)
+		c.JSON(http.StatusOK, response.Response{Data: productosQueried})
 	}
 }
 
@@ -149,10 +150,7 @@ func (p *Producto) ProductAdd() gin.HandlerFunc{
 			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{
-			"message": "Created ok",
-			"data":    pr,
-		})
+		c.JSON(http.StatusCreated, response.Response{Data: pr})
 	}
 
 }
@@ -215,7 +213,7 @@ func (p *Producto) ProductReplace() gin.HandlerFunc {
 			}
 		}
 
-		c.JSON(http.StatusOK, prodNew)
+		c.JSON(http.StatusOK, response.Response{Data: prodNew})
 	}
 }
 
@@ -244,7 +242,7 @@ func (p *Producto) DeleteProduct() gin.HandlerFunc {
 				c.JSON(http.StatusInternalServerError, "")
 			}
 		}
-		c.JSON(http.StatusOK, "Product deleted")
+		c.JSON(http.StatusOK, response.Response{Data: "Product deleted"})
 	}
 }
 
@@ -292,6 +290,6 @@ func (p *Producto) ProductPatch() gin.HandlerFunc {
 		if errUpdate != nil {
 			c.JSON(http.StatusConflict, err)
 		}
-		c.JSON(http.StatusOK, lastP)
+		c.JSON(http.StatusOK, response.Response{Data: lastP})
 	}
 }
