@@ -21,7 +21,7 @@ func (r *Router) SetRoutes() {
 // website
 func (r *Router) SetWebsite() {
 	// instances
-	rp := product.NewRepository(r.db, 3)
+	rp := product.NewRepository(r.db, len(*r.db))
 	sv := product.NewService(rp)
 	h := handlers.NewProducto(sv)
 
