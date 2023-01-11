@@ -62,7 +62,7 @@ func (p *Producto) ProductId() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusFound, *searched)
+		c.JSON(http.StatusFound, searched)
 	}
 }
 
@@ -156,7 +156,7 @@ func (p *Producto) ProductReplace() gin.HandlerFunc {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"message": "fail to parse code",
+				"message": "fail to parse id",
 				"error": err,
 			})
 			return
@@ -165,6 +165,20 @@ func (p *Producto) ProductReplace() gin.HandlerFunc {
 		var replaceRequest requestProduct
 		if err := c.ShouldBindJSON(&replaceRequest); err != nil {
 			c.JSON(http.StatusBadRequest, nil)
+			return
+		}
+
+		if errVacios := verificarVacios(replaceRequest.Price, replaceRequest.Name, replaceRequest.Expiration, replaceRequest.CodeValue, replaceRequest.Quantity); errVacios != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error vacios": errVacios.Error(),
+			})
+			return
+		}
+
+		if errFecha := verificarFecha(replaceRequest.Expiration); errFecha != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error fecha": errFecha,
+			})
 			return
 		}
 
@@ -178,9 +192,9 @@ func (p *Producto) ProductReplace() gin.HandlerFunc {
 			Price: replaceRequest.Price,
 		}
 
-		err = p.sv.Update(id, replaceProduct)
+		prodNew, errReplace := p.sv.Update(id, replaceProduct)
 		if err != nil {
-			switch err {
+			switch errReplace {
 			case product.ErrNotFound:
 				c.JSON(http.StatusNotFound, "No se encontro")
 			default:
@@ -188,6 +202,71 @@ func (p *Producto) ProductReplace() gin.HandlerFunc {
 			}
 		}
 
-		c.JSON(http.StatusOK, replaceProduct)
+		c.JSON(http.StatusOK, prodNew)
+	}
+}
+
+func (p *Producto) DeleteProduct() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "fail to parse id",
+				"error": err,
+			})
+			return
+		}
+		err = p.sv.Delete(id)
+		if err != nil {
+			switch err{
+			case product.ErrNotFound:
+				c.JSON(http.StatusNotFound, err)
+			default:
+				c.JSON(http.StatusInternalServerError, "")
+			}
+		}
+		c.JSON(http.StatusOK, "Product deleted")
+	}
+}
+
+func (p *Producto) ProductPatch() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var r requestProduct
+
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "fail to parse id",
+				"error": err,
+			})
+			return
+		}
+		if err = c.ShouldBindJSON(&r); err != nil {
+			c.JSON(http.StatusBadRequest, err)
+		}
+
+		update := domain.Producto{
+			Name:        r.Name,
+			Quantity:    r.Quantity,
+			CodeValue:   r.CodeValue,
+			IsPublished: r.IsPublished,
+			Expiration:  r.Expiration,
+			Price:       r.Price,
+		}
+
+		if update.Expiration != "" {
+			if errFecha := verificarFecha(update.Expiration); errFecha != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error fecha": errFecha,
+				})
+				return
+			}
+		}
+
+		lastP, errUpdate := p.sv.Update(id, update)
+		if errUpdate != nil {
+			c.JSON(http.StatusConflict, err)
+		}
+		c.JSON(http.StatusOK, lastP)
 	}
 }

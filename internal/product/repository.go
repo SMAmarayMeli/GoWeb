@@ -13,13 +13,14 @@ var (
 type Repository interface {
 	// read
 	Get() ([]domain.Producto, error)
-	GetById(id int) (*domain.Producto, error)
-	GetByCodeValue(codeValue string) (*domain.Producto, error)
+	GetById(id int) (domain.Producto, error)
+	validateCodeValue(codeValue string) bool
 	ExistId(url int) bool
 	GetGreaterThanPrice(price float64) ([]domain.Producto, error)
 	// write
+	Delete(id int) error
 	Create(domain.Producto) (int, error)
-	Update(id int, product domain.Producto) error
+	Update(id int, product domain.Producto) (domain.Producto, error)
 }
 
 type repository struct {
@@ -35,23 +36,23 @@ func NewRepository(db *[]domain.Producto, lastID int) Repository {
 func (r *repository) Get() ([]domain.Producto, error) {
 	return *r.db, nil
 }
-func (r *repository) GetById(id int) (*domain.Producto, error) {
+func (r *repository) GetById(id int) (domain.Producto, error) {
 	for _, p := range *r.db {
 		if p.Id == id {
-			return &p, nil
+			return p, nil
 		}
 	}
 
-	return &domain.Producto{}, fmt.Errorf("%w. %s", ErrNotFound, "product does not exist")
+	return domain.Producto{}, fmt.Errorf("%w. %s", ErrNotFound, "product does not exist")
 }
-func (r *repository) GetByCodeValue(codeValue string) (*domain.Producto, error) {
+func (r *repository) validateCodeValue(codeValue string) bool {
 	for _, p := range *r.db {
 		if p.CodeValue == codeValue {
-			return &p, nil
+			return false
 		}
 	}
 
-	return &domain.Producto{}, fmt.Errorf("%w. %s", ErrNotFound, "product does not exist")
+	return true
 }
 func (r *repository) ExistId(id int) bool {
 	for _, p := range *r.db {
@@ -81,13 +82,25 @@ func (r *repository) Create(product domain.Producto) (int, error) {
 	return r.lastID, nil
 }
 
-func (r *repository) Update(id int, product domain.Producto) error {
-
-	productToBe, err := r.GetById(id)
-	if err != nil {
-		return err
+func (r *repository) Delete(id int) error {
+	for i, product := range *r.db {
+		if product.Id == id {
+			*r.db = append((*r.db)[:i], (*r.db)[i+1:]...)
+			return nil
+		}
 	}
-	*productToBe = product
+	return ErrNotFound
+}
 
-	return nil
+func (r *repository) Update(id int, product domain.Producto) (domain.Producto, error) {
+	for i, p := range *r.db{
+		if p.Id == id {
+			if !r.validateCodeValue(product.CodeValue) && product.CodeValue != p.CodeValue {
+				return domain.Producto{}, ErrAlreadyExist
+			}
+			(*r.db)[i] = product
+			return product, nil
+		}
+	}
+	return domain.Producto{}, ErrNotFound
 }
