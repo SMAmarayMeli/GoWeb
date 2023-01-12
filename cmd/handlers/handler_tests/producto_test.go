@@ -55,19 +55,39 @@ func createServerForProductsHandlerTest() *gin.Engine {
 	return r
 }
 
-func TestGetAll(t *testing.T) {
+func TestGetAll_Ok(t *testing.T) {
 	// Arrange
 	server := createServerForProductsHandlerTest()
 	request := httptest.NewRequest(http.MethodGet, "/products/", nil)
 	responseRecorded := httptest.NewRecorder()
 	// Act
 	server.ServeHTTP(responseRecorded, request)
-
-	// Obtain response body
 	body, err := io.ReadAll(responseRecorded.Body)
+	var obtainedBody []domain.Producto
+	// TODO Check why Unmarshal doesnt work. Body contains ok data.
+	// errOnBodyUnmarshal := json.Unmarshal(body, &obtainedBody)
+	t.Logf("%v\n", string(body))
+	t.Logf("%v\n", obtainedBody)
 
 	// Assert
 	assert.Equal(t, http.StatusOK, responseRecorded.Code)
+	// assert.Nil(t, errOnBodyUnmarshal, "Error in unmarshal")
 	assert.Equal(t, nil, err)
 	assert.True(t, len(body) > 0)
+}
+
+func TestProductGetById(t *testing.T) {
+	// Arrange
+	server := createServerForProductsHandlerTest()
+	request := httptest.NewRequest(http.MethodGet, "/products/2", nil)
+	responseRecorded := httptest.NewRecorder()
+
+	// Act
+	server.ServeHTTP(responseRecorded, request)
+
+	body, _ := io.ReadAll(responseRecorded.Body)
+	t.Logf("%v\n", string(body))
+
+	// Assert
+	assert.Equal(t, http.StatusOK, responseRecorded.Code)
 }
