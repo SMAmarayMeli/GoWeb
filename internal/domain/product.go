@@ -9,6 +9,3 @@ type Producto struct {
 	Expiration  string  `json:"expiration"`
 	Price       float64 `json:"price"`
 }
-
-var Productos = make([]Producto, 0)
-var LastId int
