@@ -4,7 +4,7 @@ import (
 	"GoWeb/internal/domain"
 	"database/sql"
 	"errors"
-	"fmt"
+	"log"
 )
 
 var (
@@ -25,36 +25,45 @@ type Repository interface {
 }
 
 type repository struct {
-	db *[]domain.Producto
-	// config
-	lastID	int
 	db *sql.DB
 }
 
-func NewRepository(db *[]domain.Producto, lastID int) Repository {
-	return &repository{db: db, lastID: lastID}
 func NewRepository(db *sql.DB) Repository {
 	return &repository{db: db}
 }
 
 func (r *repository) Get() ([]domain.Producto, error) {
-	return *r.db, nil
-}
-func (r *repository) GetById(id int) (domain.Producto, error) {
-	for _, p := range *r.db {
-		if p.Id == id {
-			return p, nil
-		}
+	var products []domain.Producto
+	db := r.db
+	rows, err := db.Query("SELECT id, name, quantity, code_value, is_published, expiration, price FROM products")
+	if err != nil {
+		log.Println(err.Error())
+		return products, err
 	}
+	defer rows.Close()
 
-	return domain.Producto{}, fmt.Errorf("%w. %s", ErrNotFound, "product does not exist")
-}
-func (r *repository) validateCodeValue(codeValue string) bool {
-	for _, p := range *r.db {
-		if p.CodeValue == codeValue {
-			return false
+	for rows.Next() {
+		var product domain.Producto
+		err = rows.Scan(
+			&product.Id,
+			&product.Name,
+			&product.Quantity,
+			&product.CodeValue,
+			&product.IsPublished,
+			&product.Expiration,
+			&product.Price)
+		if err != nil {
+			log.Println(err.Error())
+			return products, err
 		}
+		products = append(products, product)
 	}
+	if err = rows.Err(); err != nil {
+		log.Println(err.Error())
+		return products, err
+	}
+	return products, nil
+}
 
 	return true
 }
