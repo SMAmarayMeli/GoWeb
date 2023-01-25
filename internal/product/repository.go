@@ -109,11 +109,26 @@ func (r *repository) GetGreaterThanPrice(price float64) ([]domain.Producto, erro
 
 // write
 func (r *repository) Create(product domain.Producto) (int, error) {
-	r.lastID++
-	product.Id = r.lastID
-	*r.db = append(*r.db, product)
+	db := r.db // se inicializa la base
+	query := "INSERT INTO products(id, name, quantity, code_value, is_published, expiration, price) VALUES( ?, ?, ?, ?)"
+	prep, err := db.Prepare(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer prep.Close()
 
-	return r.lastID, nil
+	var maxID int
+	err = db.QueryRow("SELECT MAX(id) FROM products").Scan(&maxID)
+	if err != nil {
+		return 0, err
+	}
+	product.Id = maxID + 1
+	_, err = prep.Exec(product.Id, product.Name, product.Quantity, product.CodeValue, product.IsPublished, product.Expiration, product.Price) // retorna un sql.Result y un error
+	if err != nil {
+		return 0, err
+	}
+
+	return maxID, nil
 }
 
 func (r *repository) Delete(id int) error {
