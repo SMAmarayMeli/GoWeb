@@ -64,7 +64,28 @@ func (r *repository) Get() ([]domain.Producto, error) {
 	}
 	return products, nil
 }
+func (r *repository) GetById(id int) (domain.Producto, error) {
 
+	var product domain.Producto
+	db := r.db
+	row := db.QueryRow("SELECT id, name, quantity, code_value, is_published, expiration, price FROM products WHERE ID = ?", id)
+	if row.Err() != nil {
+
+	}
+	err := row.Scan(
+		&product.Id,
+		&product.Name,
+		&product.Quantity,
+		&product.CodeValue,
+		&product.IsPublished,
+		&product.Expiration,
+		&product.Price)
+	if err != nil {
+		log.Println(err.Error())
+		return product, err
+	}
+	return product, nil
+}
 	return true
 }
 func (r *repository) ExistId(id int) bool {
