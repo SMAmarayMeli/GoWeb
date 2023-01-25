@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"io/ioutil"
@@ -29,8 +30,14 @@ func readJson(dbP *[]domain.Producto) {
 var StorageDb *sql.DB
 
 func initDB() {
-	dataSource := "root:abc@tcp(127.0.0.1:3306)/my_db"
-	StorageDB, err := sql.Open("mysql", dataSource)
+	databaseConfig := mysql.Config{
+		User:   "root",
+		Passwd: "abc",
+		Addr:   "127.0.0.1:3306",
+		DBName: "my_db",
+	}
+
+	StorageDB, err := sql.Open("mysql", databaseConfig.FormatDSN())
 	if err != nil {
 		panic(err)
 	}
@@ -49,10 +56,10 @@ func main() {
 
 	initDB()
 	var dbP []domain.Producto
-	// readJson(&dbP)
+	readJson(&dbP)
 
 	en := gin.Default()
-	rt := routes.NewRouter(en, &dbP)
+	rt := routes.NewRouter(StorageDb, en, &dbP)
 	rt.SetRoutes()
 
 	if err := en.Run(); err != nil {
