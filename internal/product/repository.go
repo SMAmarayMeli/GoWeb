@@ -142,14 +142,16 @@ func (r *repository) Delete(id int) error {
 }
 
 func (r *repository) Update(id int, product domain.Producto) (domain.Producto, error) {
-	for i, p := range *r.db{
-		if p.Id == id {
-			if !r.validateCodeValue(product.CodeValue) && product.CodeValue != p.CodeValue {
-				return domain.Producto{}, ErrAlreadyExist
-			}
-			(*r.db)[i] = product
-			return product, nil
-		}
+	db := r.db // se inicializa la base
+	query := "UPDATE products SET name = ?, quantity = ?, code_value = ?, is_published = ?, expiration = ?, price = ? WHERE id = ?"
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Fatal(err)
 	}
-	return domain.Producto{}, ErrNotFound
+	defer stmt.Close()
+	_, err = stmt.Exec(product.Name, product.Quantity, product.CodeValue, product.IsPublished, product.Expiration, product.Price)
+	if err != nil {
+		return domain.Producto{}, err
+	}
+	return product, nil
 }
