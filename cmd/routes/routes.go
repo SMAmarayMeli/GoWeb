@@ -2,26 +2,28 @@ package routes
 
 import (
 	"GoWeb/cmd/handlers"
-	"GoWeb/internal/domain"
 	"GoWeb/internal/product"
+	"database/sql"
 	"github.com/gin-gonic/gin"
 )
 
 type Router struct {
-	db *[]domain.Producto
+	db *sql.DB
 	en *gin.Engine
 }
-func NewRouter(en *gin.Engine, db *[]domain.Producto) *Router {
+
+func NewRouter(db *sql.DB, en *gin.Engine) *Router {
 	return &Router{en: en, db: db}
 }
 
 func (r *Router) SetRoutes() {
 	r.SetWebsite()
 }
+
 // website
 func (r *Router) SetWebsite() {
 	// instances
-	rp := product.NewRepository(r.db, len(*r.db))
+	rp := product.NewRepository(r.db)
 	sv := product.NewService(rp)
 	h := handlers.NewProducto(sv)
 

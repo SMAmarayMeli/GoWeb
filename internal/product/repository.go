@@ -2,6 +2,7 @@ package product
 
 import (
 	"GoWeb/internal/domain"
+	"database/sql"
 	"errors"
 	"fmt"
 )
@@ -27,10 +28,13 @@ type repository struct {
 	db *[]domain.Producto
 	// config
 	lastID	int
+	db *sql.DB
 }
 
 func NewRepository(db *[]domain.Producto, lastID int) Repository {
 	return &repository{db: db, lastID: lastID}
+func NewRepository(db *sql.DB) Repository {
+	return &repository{db: db}
 }
 
 func (r *repository) Get() ([]domain.Producto, error) {

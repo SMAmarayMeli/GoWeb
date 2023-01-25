@@ -27,17 +27,18 @@ func readJson(dbP *[]domain.Producto) {
 	}
 }
 
-var StorageDb *sql.DB
+var StorageDB *sql.DB
 
-func initDB() {
+func init() {
 	databaseConfig := mysql.Config{
-		User:   "root",
-		Passwd: "abc",
-		Addr:   "127.0.0.1:3306",
-		DBName: "my_db",
+		User:      "root",
+		Passwd:    "abc",
+		Addr:      "127.0.0.1:3306",
+		DBName:    "my_db",
+		ParseTime: true,
 	}
-
-	StorageDB, err := sql.Open("mysql", databaseConfig.FormatDSN())
+	var err error
+	StorageDB, err = sql.Open("mysql", databaseConfig.FormatDSN())
 	if err != nil {
 		panic(err)
 	}
@@ -54,12 +55,11 @@ func main() {
 		panic("env not loadable")
 	}
 
-	initDB()
 	var dbP []domain.Producto
 	readJson(&dbP)
 
 	en := gin.Default()
-	rt := routes.NewRouter(StorageDb, en, &dbP)
+	rt := routes.NewRouter(StorageDB, en)
 	rt.SetRoutes()
 
 	if err := en.Run(); err != nil {
