@@ -3,9 +3,11 @@ package main
 import (
 	"GoWeb/cmd/routes"
 	"GoWeb/internal/domain"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"io/ioutil"
 	"log"
@@ -24,14 +26,30 @@ func readJson(dbP *[]domain.Producto) {
 	}
 }
 
+var StorageDb *sql.DB
+
+func initDB() {
+	dataSource := "root:abc@tcp(127.0.0.1:3306)/my_db"
+	StorageDB, err := sql.Open("mysql", dataSource)
+	if err != nil {
+		panic(err)
+	}
+	err = StorageDB.Ping()
+	if err != nil {
+		panic(err)
+	}
+	log.Println("database Configured")
+}
+
 func main() {
 	err := godotenv.Load("go.env")
 	if err != nil {
 		panic("env not loadable")
 	}
 
-	dbP := []domain.Producto{}
-	readJson(&dbP)
+	initDB()
+	var dbP []domain.Producto
+	// readJson(&dbP)
 
 	en := gin.Default()
 	rt := routes.NewRouter(en, &dbP)
