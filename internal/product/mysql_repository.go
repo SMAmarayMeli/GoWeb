@@ -9,6 +9,7 @@ import (
 
 var (
 	ErrNotFoundMySql = errors.New("item not found")
+	ErrInternal      = errors.New("Internal error")
 )
 
 type RepositoryMySql interface {
@@ -127,8 +128,31 @@ func (r *repositoryMySql) Create(product domain.Producto) (int, error) {
 }
 
 func (r *repositoryMySql) Delete(id int) error {
+	db := r.db
+	statement, err := db.Prepare(`
+		DELETE FROM products
+		WHERE
+			id = ?;
+	`)
+	if err != nil {
+		return ErrInternal
+	}
 
-	return ErrNotFound
+	result, err := statement.Exec(id)
+	if err != nil {
+		return ErrInternal
+	}
+
+	// Check if product was deleted.
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return ErrInternal
+	}
+
+	if rowsAffected == 0 {
+		return ErrNotFoundMySql
+	}
+	return nil
 }
 
 func (r *repositoryMySql) Update(id int, product domain.Producto) (domain.Producto, error) {
